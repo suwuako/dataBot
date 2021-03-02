@@ -248,7 +248,7 @@ class dataBot:
     
   def run(self):
     self.commands()
-    bot.run('Nzk4MTE5MzYwMDkwNjAzNTMw.X_wYkw.44XeXtmIe5JQ8Ex_xH7S7B7gIok')
+    bot.run('')
 
 
 if __name__ == '__main__':
