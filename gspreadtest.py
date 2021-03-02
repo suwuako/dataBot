@@ -7,8 +7,6 @@ class spreadSheet:
 
   def new_sheet(self):    
     self.dataSheet = gc.create('dataSheet')
-    self.dataSheet.share('lowronnietn@gmail.com', perm_type='user', role='writer')
-    self.dataSheet.share('ballertheinfinite@gmail.com', perm_type='user', role='writer')
     self.get_sheet()
 
   def get_sheet(self):
