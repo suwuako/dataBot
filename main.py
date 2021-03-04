@@ -14,6 +14,7 @@ import gspread
 import discord
 import string
 import pandas
+import secret
 
 spreadSheet = spreadSheet()
 
@@ -50,69 +51,77 @@ class dataBot:
 
     @bot.command()
     async def register(message):
-      #try:
+      try:
         spreadSheet.new_worksheet(f'{message.author.id}')
-        count = 2
-        dateValue = 'A'
-        today = datetime.date.today()
-        for i in range(2500):
-          cell = dateValue + str(count)
-          futureDay = datetime.timedelta(days=i+1)
-          value = today+futureDay
-          spreadSheet.write_cell(cell, value.strftime('%Y-%m-%d'))
-          count += 1
         await message.channel.send(f'worksheet made!')
           
-      #except gspread.exceptions.APIError:
+      except gspread.exceptions.APIError:
         await message.channel.send(f'Spreadsheet by the name of <@{message.author.id}> already exists')
 
     @bot.command()
     async def newHeader(message, *args):
       if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;newTitle first')
+        await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
+        #gets all cell values of top row
         rowValues = spreadSheet.get_row(1)
         count = 0
         headers = ''
-
+        
+        #compiling arguments in message contents
         for i in args:
           if i != args[-1]:
             headers += str(i) + ' '
         headers += args[-1]
-
+        
+        #find every second column so that I can fit datetine values for each cell (B, D, F, etc are all data columns while the other odds contain dates)
         for i in rowValues:
           count += 1
+        
+        #catching for odd numbers and gets converted to even (i think)
+        if type(count/2) == float:
+          count += 1
           
+        #same title column values cause issues I dont want to build around
         if headers in rowValues:
           await message.channel.send(f'You can\'t make two headers of the same name. \n(if ur trying to find bugs id like you to know ur an asshole)')
           
         else:
           spreadSheet.write_cell(f'{string.ascii_uppercase[count]}1', headers)
-          
+        
           await message.channel.send(f'Making header:`"{headers}"` on `{string.ascii_uppercase[count]}1` in file <@{message.author.id}>')
+
 
     @bot.command()
     async def displayHeaders(message): 
       if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;newTitle first')
+        await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         rowValues = spreadSheet.get_row(1)
-        joinList = ''
-        for i in range(len(rowValues)):
-          if i != len(rowValues):
-            joinList += '`'+ rowValues[i] + '`, '
-        send = f'[{joinList}`{rowValues[-1]}`]'
+        cleaned = []
+        reformat = '['
         
+        for i in rowValues:
+          if i != '':
+            cleaned.append(i)
+        
+        for i in cleaned:
+          #saving last value in list to prevent it ending in a comma
+          if cleaned[-1] != i:
+            reformat += f'`{i}`, '
+          
+        reformat += f'`{i}`]'
         bindEmbed = discord.Embed(color=0xFF99E5)
-        bindEmbed.add_field(name='Total headers:', value=f'{send}', inline=True)
+        bindEmbed.add_field(name='List of headers:', value=f'{reformat}', inline=True)
+        
         await message.channel.send(embed=bindEmbed)
         
     @bot.command()
     async def postData(message, *args):
       if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;newTitle first')
+        await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
-        
+        #holy fucking shit this may work but its slow as fuck fix it when u got time
         headers = ''
         invalid = [len(args)-1, len(args)-2]
         for i in range(len(args)):
@@ -127,9 +136,14 @@ class dataBot:
           count = 2
           while True:
             cell = string.ascii_uppercase[self.count] + str(count)
+            datecell = string.ascii_uppercase[self.count-1] + str(count)
 
             cellValue = spreadSheet.get_cell(cell)
             if cellValue == '':
+              now = datetime.datetime.now()
+              formatted = now.strftime("%d/%m/%Y %H:%M:%S")
+              
+              spreadSheet.write_cell(datecell, formatted)
               spreadSheet.write_cell(cell, args[-1])
               bindEmbed = discord.Embed(color=0xFF99E5)
               bindEmbed.set_author(name=f'Header: `{headers}`')
@@ -142,7 +156,7 @@ class dataBot:
     @bot.command()
     async def rawData(message, *args):
       if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;newTitle first')
+        await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         headers = ''
         for i in args:
@@ -174,16 +188,18 @@ class dataBot:
     @bot.command()
     async def rawSheet(message):
       if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;newTitle first')
+        await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         rows = spreadSheet.get_row(1)
-        count = 1
-        cellCount = 1
-        output = ''
         
         bindEmbed = discord.Embed(color=0xFF99E5)
         bindEmbed.set_author(name=f'Getting values of <@{message.author.id}>')
         
+        for header in rows:
+          if header != '':
+            column = spreadSheet.get_column(header)
+            print(column)
+        '''
         for header in rows:
           column = spreadSheet.get_column(count)
           for value in column:
@@ -194,13 +210,14 @@ class dataBot:
           count += 1
           bindEmbed.add_field(name=f'Column: {header}', value=f'{output}', inline=True)
           output = ''
+        '''
         
         await message.channel.send(embed=bindEmbed)
         
     @bot.command()
     async def replace(message, *args):
       if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;newTitle first')
+        await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         temp = ''
         for i in range(len(args)):
@@ -218,9 +235,9 @@ class dataBot:
           
 
     @bot.command()
-    async def analysis(message):
+    async def basicAnalysis(message):
       if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;newTitle first')
+        await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         strdata = self.worksheet.get_all_values()
         headers = strdata.pop(0)
@@ -239,16 +256,16 @@ class dataBot:
         intdf = pandas.DataFrame(intdata, columns=headers)
         strdf = pandas.DataFrame(strdata, columns=headers)
         
-        '''
+        
         await message.channel.send(strdf)
         await message.channel.send(intdf.describe())
         await message.channel.send(intdf.info)
-        '''
+        
     
     
   def run(self):
     self.commands()
-    bot.run('')
+    bot.run(secret.credentials.bottoken)
 
 
 if __name__ == '__main__':
