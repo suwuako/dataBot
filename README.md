@@ -3,7 +3,7 @@ discord bot ~~using gspread~~ to read/write to spreadsheet and analyze output
 
 ## Branch purpose
 
-Port the project to Nextcloud and ODS spreadsheets, in order to make the system more open-source and less dependent on Google services.
+Port the project to Nextcloud and ~~ODS~~ CSV spreadsheets, in order to make the system more open-source and less dependent on Google services.
 
 ## Dependencies
 
