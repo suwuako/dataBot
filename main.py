@@ -1,275 +1,41 @@
-#todo list
-'''
-1. test out having multiple headers of the smae name (low priority)
-2. add data sorting and analysis (high priority)
-3. add time (medium priority)
-'''
-
-from gspreadtest import spreadSheet
-from discord.ext import commands
-import datetime
-import asyncio
-import nest_asyncio
-import gspread
-import discord
-import string
-import pandas
 import secret
-
-spreadSheet = spreadSheet()
-
-class dataBot:
-  def __init__(self):
-    @bot.event
-    async def on_ready():
-      print(f'We have logged in as {bot.user}')
-    spreadSheet.get_sheet()
-
-  def authorID_worksheet(self, authorID):
-    try:
-      spreadSheet.get_worksheet(str(authorID))
-      self.worksheet = spreadSheet.worksheet
-      return False
-    except gspread.WorksheetNotFound:
-      return True
-
-  def findColumn(self, headers):
-    rowValues = spreadSheet.get_row(1)
-    count = 0
-    self.test = False
-
-    for i in rowValues:
-      if i == headers:
-        self.test = True
-        self.count = count
-      count += 1
-
-  def commands(self):
-    @bot.command()
-    async def ping(message):
-      await message.channel.send('Pong!')
-
-    @bot.command()
-    async def register(message):
-      try:
-        spreadSheet.new_worksheet(f'{message.author.id}')
-        await message.channel.send(f'worksheet made!')
-          
-      except gspread.exceptions.APIError:
-        await message.channel.send(f'Spreadsheet by the name of <@{message.author.id}> already exists')
-
-    @bot.command()
-    async def newHeader(message, *args):
-      if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;register first')
-      else:
-        #gets all cell values of top row
-        rowValues = spreadSheet.get_row(1)
-        count = 0
-        headers = ''
-        
-        #compiling arguments in message contents
-        for i in args:
-          if i != args[-1]:
-            headers += str(i) + ' '
-        headers += args[-1]
-        
-        #find every second column so that I can fit datetine values for each cell (B, D, F, etc are all data columns while the other odds contain dates)
-        for i in rowValues:
-          count += 1
-        
-        #catching for odd numbers and gets converted to even (i think)
-        if type(count/2) == float:
-          count += 1
-          
-        #same title column values cause issues I dont want to build around
-        if headers in rowValues:
-          await message.channel.send(f'You can\'t make two headers of the same name. \n(if ur trying to find bugs id like you to know ur an asshole)')
-          
-        else:
-          spreadSheet.write_cell(f'{string.ascii_uppercase[count]}1', headers)
-        
-          await message.channel.send(f'Making header:`"{headers}"` on `{string.ascii_uppercase[count]}1` in file <@{message.author.id}>')
+import nest_asyncio
+from discord.ext import tasks, commands
 
 
-    @bot.command()
-    async def displayHeaders(message): 
-      if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;register first')
-      else:
-        rowValues = spreadSheet.get_row(1)
-        cleaned = []
-        reformat = '['
-        
-        for i in rowValues:
-          if i != '':
-            cleaned.append(i)
-        
-        for i in cleaned:
-          #saving last value in list to prevent it ending in a comma
-          if cleaned[-1] != i:
-            reformat += f'`{i}`, '
-          
-        reformat += f'`{i}`]'
-        bindEmbed = discord.Embed(color=0xFF99E5)
-        bindEmbed.add_field(name='List of headers:', value=f'{reformat}', inline=True)
-        
-        await message.channel.send(embed=bindEmbed)
-        
-    @bot.command()
-    async def postData(message, *args):
-      if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;register first')
-      else:
-        #holy fucking shit this may work but its slow as fuck fix it when u got time
-        headers = ''
-        invalid = [len(args)-1, len(args)-2]
-        for i in range(len(args)):
-          if i not in invalid:
-            headers += args[i] + ' '
-        headers += args[-2]
-
-        self.findColumn(headers)
-        if self.test != True:
-          await message.channel.send(f'There is no header called `{headers}`. Try ;displayHeaders to see what headers you have')
-        else:
-          count = 2
-          while True:
-            cell = string.ascii_uppercase[self.count] + str(count)
-            datecell = string.ascii_uppercase[self.count-1] + str(count)
-
-            cellValue = spreadSheet.get_cell(cell)
-            if cellValue == '':
-              now = datetime.datetime.now()
-              formatted = now.strftime("%d/%m/%Y %H:%M:%S")
-              
-              spreadSheet.write_cell(datecell, formatted)
-              spreadSheet.write_cell(cell, args[-1])
-              bindEmbed = discord.Embed(color=0xFF99E5)
-              bindEmbed.set_author(name=f'Header: `{headers}`')
-              bindEmbed.add_field(name=f'Cell Value: `{cell}`', value=f'Data: `{args[-1]}`', inline=True)
-              await message.channel.send(embed=bindEmbed)
-              break
-
-            count += 1
-
-    @bot.command()
-    async def rawData(message, *args):
-      if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;register first')
-      else:
-        headers = ''
-        for i in args:
-          if i != args[-1]:
-            headers += i + ' '
-        headers += args[-1]
-
-        self.findColumn(headers)
-        if self.test != True:
-            await message.channel.send(f'There is no header called `{headers}`. Try ;displayHeaders to see what headers you have')
-        else:
-          columnValue = spreadSheet.get_column(self.count+1)
-          totalString = ''
-          cell = string.ascii_uppercase[self.count] + '2'
-          for i in range(len(columnValue)):
-            if i != 0 or len(columnValue)-1:
-              
-              totalString += f'(`{cell}`): ' + columnValue[i] + '\n'
-              cell = string.ascii_uppercase[self.count] + f'{i+2}'
-          totalString += f'(`{cell}`): ' + columnValue[-1]
-
-          bindEmbed = discord.Embed(color=0xFF99E5)
-          bindEmbed.set_author(name=f'Getting values of {headers}')
-          bindEmbed.add_field(name=f'Column: {headers}', value=f'{totalString}', inline=True)
-          bindEmbed.set_footer(text=f'Note that cells begin at {string.ascii_uppercase[self.count]}2, because the first cell is occupied by the header (title)')
-          await message.channel.send(embed=bindEmbed)
-
-    
-    @bot.command()
-    async def rawSheet(message):
-      if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;register first')
-      else:
-        rows = spreadSheet.get_row(1)
-        
-        bindEmbed = discord.Embed(color=0xFF99E5)
-        bindEmbed.set_author(name=f'Getting values of <@{message.author.id}>')
-        
-        for header in rows:
-          if header != '':
-            column = spreadSheet.get_column(header)
-            print(column)
-        '''
-        for header in rows:
-          column = spreadSheet.get_column(count)
-          for value in column:
-            cell = string.ascii_uppercase[count-1] + str(cellCount)
-            output += f'`{cell}`: {value}\n'
-            cellCount += 1
-          cellCount = 1
-          count += 1
-          bindEmbed.add_field(name=f'Column: {header}', value=f'{output}', inline=True)
-          output = ''
-        '''
-        
-        await message.channel.send(embed=bindEmbed)
-        
-    @bot.command()
-    async def replace(message, *args):
-      if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;register first')
-      else:
-        temp = ''
-        for i in range(len(args)):
-          if i != 0:
-            temp += args[i]
+class bot_main:
+    def __init__(self):
+        @bot.event
+        async def on_ready():
+            print(f'Bot started as {bot.user}')
             
-        try:
-          if args[0][1] != '1':
-            spreadSheet.write_cell(args[0], temp)
-            await message.channel.send(f'replaced `{args[0]}` with `{temp}`')
-          else:
-            await message.channel.send('you cant replace headers')
-        except:
-          await message.channel.send('something went wrong?')
-          
-
-    @bot.command()
-    async def basicAnalysis(message):
-      if self.authorID_worksheet(message.author.id) == True:
-        await message.channel.send('you need to register a spreadsheet with ;register first')
-      else:
-        strdata = self.worksheet.get_all_values()
-        headers = strdata.pop(0)
-
-        intdata = []
-        for value in strdata:
-          tempList = []
-          for i in value:
-            try:
-              i = int(i)
-              tempList.append(i)
-            except:
-              pass
-          intdata.append(tempList)
+            channelRecipient = bot.get_channel(secret.update_channel_ID)
+            await channelRecipient.send(f'Bot started as <@{bot.user.id}> by {secret.host_username}')
+    '''
+    def bot_admin_commands(self):
+        if userID in secret.bot_admins:
+            d
+        else:
+            pass
+    '''
+    def commands(self):
+        @bot.command()
+        async def ping(message):
+            await message.send('pong!')
+            
         
-        intdf = pandas.DataFrame(intdata, columns=headers)
-        strdf = pandas.DataFrame(strdata, columns=headers)
-        
-        
-        await message.channel.send(strdf)
-        await message.channel.send(intdf.describe())
-        await message.channel.send(intdf.info)
-        
+            
     
-    
-  def run(self):
-    self.commands()
-    bot.run(secret.credentials.bottoken)
-
-
+    def run(self):
+        self.commands()
+        #self.bot_admin_commands()
+        bot.run(secret.bot_token)
+        
 if __name__ == '__main__':
-  bot = commands.Bot(command_prefix=';')
-  nest_asyncio.apply()
-  dataBot = dataBot()
-  dataBot.run()                       
+    bot = commands.Bot(command_prefix=';')
+    nest_asyncio.apply()
+    
+    bot_main = bot_main()   
+    bot_main.run()
+    
+            
