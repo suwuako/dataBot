@@ -2,6 +2,6 @@
 #update_channel_ID is for the channel ID of where the bot notifies you of anything important
 #host_username is for collaborative work so that people know who knows running the current version of the bot
 
-bot_token = 'bot-token-ere'
+bot_token = 'bot-token-here'
 update_channel_ID = channel-id-here 
 host_username = '<@431491115775164418>'
