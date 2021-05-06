@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-    A consolidated class to unify the gspreadtest class and the
+    A consolidated class to unify the gspreadtest class with the
     minimal_upload_example.
     It serves as a replacement for Google Drive by periodically syncing with
     Nextcloud instead.
@@ -18,6 +18,8 @@ import pyexcel_ods   # for using an open spreadsheet format
 #import pyexcel_odsr # for pagination: https://github.com/pyexcel/pyexcel-odsr
 
 from nextcloud import NextCloud
+
+local_file_prefix = "local-data/"
 
 """
     A class to wrap any and all modifications to the spreadsheet files...
@@ -107,9 +109,9 @@ class SpreadSheet:
     self.book = collections.OrderedDict()
     new_worksheet("default")
     if (assigned_name == None or assigned_name == ""):
-      pyexcel_ods.save_data("dataSheet.ods", self.book)
+      pyexcel_ods.save_data(local_file_prefix + "dataSheet.ods", self.book)
     else:
-      pyexcel_ods.save_data(assigned_name, self.book)
+      pyexcel_ods.save_data(local_file_prefix + assigned_name, self.book)
 
   # renamed from get_sheet to get_book, in the interest of clarity
   def get_book(self, filename):
@@ -205,7 +207,7 @@ class SpreadSheet:
     
     print("[DEBUG]    Now OVERWRITING value at row %d, col %d" % (row, col))
     self.book[self.worksheet_name][row][col] = message
-    pyexcel_ods.save_data("ok.ods", self.book)
+    pyexcel_ods.save_data(local_file_prefix + "ok.ods", self.book)
 
     if (self.enable_sync):
       print("connection to Nextcloud is a WIP")
