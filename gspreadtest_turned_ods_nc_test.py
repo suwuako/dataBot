@@ -187,11 +187,11 @@ class SpreadSheet:
     return sigma
 
   def get_cell(self, cell_label):
-    match_obj = re.match("^(\\w+)(\\d+)$", cell)
+    match_obj = re.match("^([a-zA-Z]+)(\\d+)$", cell)
     assert(match_obj != None),"Invalid cell name. It must be a sequence of letters followed by a number."
     row_num = int(match_obj.group(2)) - 1
     column_num = self.convert_alphabetic_to_column(match_obj.group(1)) - 1
-    return self.book[worksheetname][row_num][column_num]
+    return self.book[self.worksheet_name][row_num][column_num]
 
   def write_cell(self, cell, message):
     assert (len(cell) >= 2),"Invalid cell size. It must be at least two characters in length."
