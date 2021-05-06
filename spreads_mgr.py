@@ -56,6 +56,7 @@ class SpreadSheet:
         this? Add mutexes, or split it up into multiple ODS files, one per user,
         and perhaps add a system of user permissions to each file?
     """
+    assert (self.enable_sync),"Sync not enabled for this spreadsheet manager!"
     upload_file(self.book_filename)
   
   # low-level nextcloud-specific functions
@@ -123,6 +124,7 @@ class SpreadSheet:
   # This call creates a new 2d array (for a new sheet inside the spreadsheet
   # book), also allowing the user to specify a custom size of the array.
   def new_worksheet(self, name, row_ct=2000, col_ct=20):
+    assert (self.book != None),"Spreadsheet book has not been set!!"
     self.worksheet_name = name
     sheet_as_arr = [[]]
     for i in range(0, row_ct):
@@ -189,6 +191,7 @@ class SpreadSheet:
     return sigma
 
   def get_cell(self, cell_label):
+    assert (self.book != None),"Spreadsheet book has not been set!!"
     match_obj = re.match("^([a-zA-Z]+)(\\d+)$", cell)
     assert(match_obj != None),"Invalid cell name. It must be a sequence of letters followed by a number."
     row_num = int(match_obj.group(2)) - 1
@@ -196,6 +199,7 @@ class SpreadSheet:
     return self.book[self.worksheet_name][row_num][column_num]
 
   def write_cell(self, cell, message):
+    assert (self.book != None),"Spreadsheet book has not been set!!"
     assert (len(cell) >= 2),"Invalid cell size. It must be at least two characters in length."
     
     # RECALL: Valid cell names could be really long like "ACE6561"
