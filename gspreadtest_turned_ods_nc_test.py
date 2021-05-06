@@ -182,7 +182,7 @@ class SpreadSheet:
       while (count < upper_limit):
         factor *= 26
         count += 1
-      sigma += (string.ascii_uppercase.find(letter_seq[index].upper()))*factor
+      sigma += (string.ascii_uppercase.find(letter_seq[index].upper()) + 1)*factor
       index -= 1
     return sigma
 
