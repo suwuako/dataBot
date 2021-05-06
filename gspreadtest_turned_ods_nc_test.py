@@ -120,15 +120,14 @@ class SpreadSheet:
 
   # This call creates a new 2d array (for a new sheet inside the spreadsheet
   # book), also allowing the user to specify a custom size of the array.
-  def new_worksheet(self, name, row_ct=2500, col_ct=50):
+  def new_worksheet(self, name, row_ct=2000, col_ct=20):
     self.worksheet_name = name
     sheet_as_arr = [[]]
     for i in range(0, row_ct):
-        sheet_as_arr.append([])
-        for h in range(0, col_ct):
-            sheet_as_arr[i].append('')
-
-
+      sheet_as_arr.append([])
+      for h in range(0, col_ct):
+        sheet_as_arr[i].append('')
+    
     sheet_as_dict = { name: sheet_as_arr }
     
     self.book.update(sheet_as_dict)
@@ -198,7 +197,7 @@ class SpreadSheet:
     assert (len(cell) >= 2),"Invalid cell size. It must be at least two characters in length."
     
     # RECALL: Valid cell names could be really long like "ACE6561"
-    match_obj = re.match("^(\\w+)(\\d+)$", cell)
+    match_obj = re.match("^([a-zA-Z]+)(\\d+)$", cell)
     assert(match_obj != None),"Invalid cell name. It must be a sequence of letters followed by a number."
     
     row = int(match_obj.group(2)) - 1 # indices start at zero
@@ -213,8 +212,9 @@ class SpreadSheet:
 
   def testGetMethods(self):
     self.get_book("dataBook.ods")
-    self.get_worksheet('CINCO_DE_MAYO', True)
+    self.get_worksheet('SEIS_DE_MAYO', True)
     self.write_cell('A1', 'bruh zone')
+    self.write_cell('C11', 'another test message')
 
 # TODO put simpler unit tests in a new file
 if __name__ == '__main__':
@@ -231,6 +231,15 @@ if __name__ == '__main__':
   nxc_obj = NextCloud(NEXTCLOUD_URL, user_username, user_password, json_output=True)
   
   spreadSheet = SpreadSheet(nxc_obj)
+  
+  r1 = spreadSheet.convert_alphabetic_to_column("C")
+  r2 = spreadSheet.convert_alphabetic_to_column("AC")
+  r3 = spreadSheet.convert_alphabetic_to_column("CA")
+  r4 = spreadSheet.convert_alphabetic_to_column("YA")
+  
+  print("%d, %d, %d, %d" % (r1, r2, r3, r4))
+  
+  # test
   spreadSheet.testGetMethods()
 
 
