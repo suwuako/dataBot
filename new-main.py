@@ -9,8 +9,6 @@ import getpass
 import os
 import string
 
-import gspreadtest_turned_ods_nc_test
-
 import spreadsh_mgr
 from discord.ext import commands
 import datetime
