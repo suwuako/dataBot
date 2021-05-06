@@ -178,7 +178,7 @@ class SpreadSheet:
       # get the proper power of 26 to apply.
       # Yes, I know I could use math.pow(), but I am afraid of doubles.
       # Mock me if you want, but integers can grow as large as they need to in
-      # python, so there's no risk of imprecision or overflow.
+      # python3, so there's no risk of imprecision or overflow.
       while (count < upper_limit):
         factor *= 26
         count += 1
@@ -189,8 +189,8 @@ class SpreadSheet:
   def get_cell(self, cell_label):
     match_obj = re.match("^(\\w+)(\\d+)$", cell)
     assert(match_obj != None),"Invalid cell name. It must be a sequence of letters followed by a number."
-    row_num = int(match_obj.group(2))
-    column_num = self.convert_alphabetic_to_column(match_obj.group(1))
+    row_num = int(match_obj.group(2)) - 1
+    column_num = self.convert_alphabetic_to_column(match_obj.group(1)) - 1
     return self.book[worksheetname][row_num][column_num]
 
   def write_cell(self, cell, message):
@@ -201,7 +201,7 @@ class SpreadSheet:
     assert(match_obj != None),"Invalid cell name. It must be a sequence of letters followed by a number."
     
     row = int(match_obj.group(2)) - 1 # indices start at zero
-    col = self.convert_alphabetic_to_column(match_obj.group(1)) # index conversion built-in to the member function
+    col = self.convert_alphabetic_to_column(match_obj.group(1)) - 1
     
     print("[DEBUG]    Now OVERWRITING value at row %d, col %d" % (row, col))
     self.book[self.worksheet_name][row][col] = message
