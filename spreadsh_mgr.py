@@ -32,6 +32,7 @@ local_file_prefix = "local-data/"
 """
 class SpreadSheet:
   def __init__(self, nextcld, **kwargs):
+    self.alphabet_base_powers = [1, 26, 26*26, 26*26*26, 26*26*26*26, 26*26*26*26*26]
     print("[DEBUG]    Constructor is being run")
     if (nextcld != None):
       print("[     ]        nextcloud sync is set ON")
@@ -173,17 +174,14 @@ class SpreadSheet:
   """
   def convert_alphabetic_to_column(self, letter_seq):
     sigma = 0
-    for index in range(len(letter_seq)-1, -1, -1):
-      factor = 1
-      upper_limit = len(letter_seq) - index - 1
-      
-      # get the proper power of 26 to apply.
-      # Yes, I know I could use math.pow(), but I am afraid of doubles.
-      # Mock me if you want, but integers can grow as large as they need to in
-      # python3, so there's no risk of imprecision or overflow.
-      for count in range(0, upper_limit):
-        factor *= 26
-      sigma += (string.ascii_uppercase.find(letter_seq[index].upper()) + 1)*factor
+    while (len(self.alphabet_base_powers) < len(letter_seq)):
+      self.alphabet_base_powers.append(self.alphabet_base_powers[-1] * 26)
+    for index in range(0, len(letter_seq)):
+      #letter = (string.ascii_uppercase.find(letter_seq[index].upper()) + 1)
+      #place_value = self.alphabet_base_powers[len(letter_seq) - index - 1]
+      #summand = letter*place_value
+      #print("Now adding %d*%d = %d" % (letter, place_value, summand))
+      sigma += (string.ascii_uppercase.find(letter_seq[index].upper()) + 1)*self.alphabet_base_powers[len(letter_seq) - index - 1]
     return sigma
 
   def get_cell(self, cell_label):
@@ -234,12 +232,20 @@ if __name__ == '__main__':
   
   spreadSheet = SpreadSheet(nxc_obj)
   
-  r1 = spreadSheet.convert_alphabetic_to_column("C")
-  r2 = spreadSheet.convert_alphabetic_to_column("AC")
-  r3 = spreadSheet.convert_alphabetic_to_column("CA")
-  r4 = spreadSheet.convert_alphabetic_to_column("YA")
+  r1 =  spreadSheet.convert_alphabetic_to_column("C")
+  r2 =  spreadSheet.convert_alphabetic_to_column("AC")
+  r3 =  spreadSheet.convert_alphabetic_to_column("CA")
+  r4 =  spreadSheet.convert_alphabetic_to_column("YA")
+  r5 =  spreadSheet.convert_alphabetic_to_column("AA")
+  r6 =  spreadSheet.convert_alphabetic_to_column("AAA")
+  r7 =  spreadSheet.convert_alphabetic_to_column("AAAA") # 26 + 26*26 + 26*26*26
+  r8 =  spreadSheet.convert_alphabetic_to_column("AAAAA")
+  r9 =  spreadSheet.convert_alphabetic_to_column("AAAAAA")
+  r10 = spreadSheet.convert_alphabetic_to_column("AAAAAAA")
+  r11 = spreadSheet.convert_alphabetic_to_column("AAAAAAAA")
   
   print("%d, %d, %d, %d" % (r1, r2, r3, r4))
+  print("%d, %d, %d, %d, %d, %d, %d" % (r5, r6, r7, r8, r9, r10, r11))
   
   # test
   spreadSheet.testGetMethods()
