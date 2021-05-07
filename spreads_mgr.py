@@ -173,21 +173,17 @@ class SpreadSheet:
   """
   def convert_alphabetic_to_column(self, letter_seq):
     sigma = 0
-    index = len(letter_seq) - 1
-    while (index >= 0):
+    for index in range(len(letter_seq)-1, -1, -1):
       factor = 1
-      count = 0
       upper_limit = len(letter_seq) - index - 1
       
       # get the proper power of 26 to apply.
       # Yes, I know I could use math.pow(), but I am afraid of doubles.
       # Mock me if you want, but integers can grow as large as they need to in
       # python3, so there's no risk of imprecision or overflow.
-      while (count < upper_limit):
+      for count in range(0, upper_limit):
         factor *= 26
-        count += 1
       sigma += (string.ascii_uppercase.find(letter_seq[index].upper()) + 1)*factor
-      index -= 1
     return sigma
 
   def get_cell(self, cell_label):
