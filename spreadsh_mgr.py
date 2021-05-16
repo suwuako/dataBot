@@ -211,7 +211,7 @@ class SpreadSheet:
       print("connection to Nextcloud is a WIP")
 
   def testGetMethods(self):
-    self.get_book("dataBook.ods")
+    self.get_book(local_file_prefix+"ok.ods")
     self.get_worksheet('SEIS_DE_MAYO', True)
     self.write_cell('A1', 'bruh zone')
     self.write_cell('C11', 'another test message')
