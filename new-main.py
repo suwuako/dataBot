@@ -76,10 +76,6 @@ class dataBot:
         await message.channel.send(f'Spreadsheet by the name of <@{message.author.id}> already exists')
 
     @bot.command()
-    async def disconnect():
-      await self.logout()
-
-    @bot.command()
     async def newHeader(message, *args):
       if self.author_id_worksheet_not_found(message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
