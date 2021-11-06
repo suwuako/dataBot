@@ -94,7 +94,7 @@ class dataBot:
         #compiling arguments in message contents
         headers = " ".join(str(next_header) for next_header in args)
         
-        #find every second column so that I can fit datetine values for each cell (B, D, F, etc are all data columns while the other odds contain dates)
+        #find every second column so that I can fit datetime values for each cell (B, D, F, etc are all data columns while the other odds contain dates)
         for i in rowValues:
           count += 1
         
