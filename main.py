@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #todo list
 '''
 1. test out having multiple headers of the smae name (low priority)
@@ -5,42 +6,64 @@
 3. add time (medium priority)
 '''
 
-from gspreadtest import spreadSheet
-from discord.ext import commands
-import datetime
 import asyncio
-import nest_asyncio
-import gspread
-import discord
+import getpass
+import os
 import string
+
+import datetime
+import discord
+from discord.ext import commands
+#import gspread
+import nest_asyncio
+from nextcloud import NextCloud
 import pandas
 import secret
+import spreadsh_mgr
 
-spreadSheet = spreadSheet()
-
+"""
+    The actual python bot to manage the creation of spreadsheets and optional
+    management of message metadata.
+"""
 class dataBot:
-  def __init__(self):
+  def __init__(self, spreadsheet_obj):
     @bot.event
     async def on_ready():
       print(f'We have logged in as {bot.user}')
-    spreadSheet.get_sheet()
+    
+    @bot.event
+    async def on_disconnect():
+      print("The bot has disconnected successfully.")
+    
+    self.spreadsheet = spreadsheet_obj
+    #self.spreadsheet.get_book()
 
-  def authorID_worksheet(self, authorID):
-    try:
-      spreadSheet.get_worksheet(str(authorID))
-      self.worksheet = spreadSheet.worksheet
-      return False
-    except gspread.WorksheetNotFound:
-      return True
+  def author_id_worksheet_not_found(self, authorID):
+    sheetList = spreadsheet.get_book().keys()
+    return (str(authorID) in sheetList)
+#    try:
+#      spreadsheet.get_worksheet(str(authorID))
+#      self.worksheet = spreadsheet.worksheet
+#      return False
+#    except gspread.WorksheetNotFound:
+#      return True
 
+  # Note to my future self:
+  # this primitive algorithm is actually running through each 
+  # COLUMN and checking whether it match the given search QUERY,
+  # which is oddly named "headers" ...
+  # it's a pretty ugly implementation. Surely I can write a better one, no?
+  # -VC
   def findColumn(self, headers):
-    rowValues = spreadSheet.get_row(1)
+    rowValues = self.spreadsheet.get_row(1)
     count = 0
     self.test = False
 
     for i in rowValues:
       if i == headers:
         self.test = True
+        
+        # TODO find a better (non-overloaded) name for this instance variable!!
         self.count = count
       count += 1
 
@@ -51,30 +74,27 @@ class dataBot:
 
     @bot.command()
     async def register(message):
-      try:
-        spreadSheet.new_worksheet(f'{message.author.id}')
-        await message.channel.send(f'worksheet made!')
-          
-      except gspread.exceptions.APIError:
-        await message.channel.send(f'Spreadsheet by the name of <@{message.author.id}> already exists')
+#      try:
+      self.spreadsheet.new_worksheet(f'{message.author.id}')
+      await message.channel.send(f'worksheet made!')
+      
+#      except gspread.exceptions.APIError:
+#        await message.channel.send(f'Spreadsheet by the name of <@{message.author.id}> already exists')
 
     @bot.command()
     async def newHeader(message, *args):
-      if self.authorID_worksheet(message.author.id) == True:
+      if self.author_id_worksheet_not_found(message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         #gets all cell values of top row
-        rowValues = spreadSheet.get_row(1)
+        rowValues = self.spreadsheet.get_row(1)
         count = 0
         headers = ''
         
         #compiling arguments in message contents
-        for i in args:
-          if i != args[-1]:
-            headers += str(i) + ' '
-        headers += args[-1]
+        headers = " ".join(str(next_header) for next_header in args)
         
-        #find every second column so that I can fit datetine values for each cell (B, D, F, etc are all data columns while the other odds contain dates)
+        #find every second column so that I can fit datetime values for each cell (B, D, F, etc are all data columns while the other odds contain dates)
         for i in rowValues:
           count += 1
         
@@ -87,17 +107,17 @@ class dataBot:
           await message.channel.send(f'You can\'t make two headers of the same name. \n(if ur trying to find bugs id like you to know ur an asshole)')
           
         else:
-          spreadSheet.write_cell(f'{string.ascii_uppercase[count]}1', headers)
+          self.spreadsheet.write_cell(f'{string.ascii_uppercase[count]}1', headers)
         
           await message.channel.send(f'Making header:`"{headers}"` on `{string.ascii_uppercase[count]}1` in file <@{message.author.id}>')
 
 
     @bot.command()
     async def displayHeaders(message): 
-      if self.authorID_worksheet(message.author.id) == True:
+      if self.author_id_worksheet_not_found(message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
-        rowValues = spreadSheet.get_row(1)
+        rowValues = self.spreadsheet.get_row(1)
         cleaned = []
         reformat = '['
         
@@ -118,7 +138,7 @@ class dataBot:
         
     @bot.command()
     async def postData(message, *args):
-      if self.authorID_worksheet(message.author.id) == True:
+      if self.author_id_worksheet_not_found(message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         #holy fucking shit this may work but its slow as fuck fix it when u got time
@@ -138,13 +158,13 @@ class dataBot:
             cell = string.ascii_uppercase[self.count] + str(count)
             datecell = string.ascii_uppercase[self.count-1] + str(count)
 
-            cellValue = spreadSheet.get_cell(cell)
+            cellValue = self.spreadsheet.get_cell(cell)
             if cellValue == '':
               now = datetime.datetime.now()
               formatted = now.strftime("%d/%m/%Y %H:%M:%S")
               
-              spreadSheet.write_cell(datecell, formatted)
-              spreadSheet.write_cell(cell, args[-1])
+              self.spreadsheet.write_cell(datecell, formatted)
+              self.spreadsheet.write_cell(cell, args[-1])
               bindEmbed = discord.Embed(color=0xFF99E5)
               bindEmbed.set_author(name=f'Header: `{headers}`')
               bindEmbed.add_field(name=f'Cell Value: `{cell}`', value=f'Data: `{args[-1]}`', inline=True)
@@ -155,7 +175,7 @@ class dataBot:
 
     @bot.command()
     async def rawData(message, *args):
-      if self.authorID_worksheet(message.author.id) == True:
+      if self.author_id_worksheet_not_found(message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         headers = ''
@@ -168,7 +188,7 @@ class dataBot:
         if self.test != True:
             await message.channel.send(f'There is no header called `{headers}`. Try ;displayHeaders to see what headers you have')
         else:
-          columnValue = spreadSheet.get_column(self.count+1)
+          columnValue = self.spreadsheet.get_column(self.count+1)
           totalString = ''
           cell = string.ascii_uppercase[self.count] + '2'
           for i in range(len(columnValue)):
@@ -187,21 +207,21 @@ class dataBot:
     
     @bot.command()
     async def rawSheet(message):
-      if self.authorID_worksheet(message.author.id) == True:
+      if self.author_id_worksheet_not_found(message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
-        rows = spreadSheet.get_row(1)
+        rows = self.spreadsheet.get_row(1)
         
         bindEmbed = discord.Embed(color=0xFF99E5)
         bindEmbed.set_author(name=f'Getting values of <@{message.author.id}>')
         
         for header in rows:
           if header != '':
-            column = spreadSheet.get_column(header)
+            column = self.spreadsheet.get_column(header)
             print(column)
         '''
         for header in rows:
-          column = spreadSheet.get_column(count)
+          column = self.spreadsheet.get_column(count)
           for value in column:
             cell = string.ascii_uppercase[count-1] + str(cellCount)
             output += f'`{cell}`: {value}\n'
@@ -216,7 +236,7 @@ class dataBot:
         
     @bot.command()
     async def replace(message, *args):
-      if self.authorID_worksheet(message.author.id) == True:
+      if self.author_id_worksheet_not_found(message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         temp = ''
@@ -226,7 +246,7 @@ class dataBot:
             
         try:
           if args[0][1] != '1':
-            spreadSheet.write_cell(args[0], temp)
+            self.spreadsheet.write_cell(args[0], temp)
             await message.channel.send(f'replaced `{args[0]}` with `{temp}`')
           else:
             await message.channel.send('you cant replace headers')
@@ -236,7 +256,7 @@ class dataBot:
 
     @bot.command()
     async def basicAnalysis(message):
-      if self.authorID_worksheet(message.author.id) == True:
+      if self.author_id_worksheet_not_found(message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         strdata = self.worksheet.get_all_values()
@@ -269,7 +289,23 @@ class dataBot:
 
 
 if __name__ == '__main__':
+  """
+      When the bot is first run, obtain credentials for the nextcloud server.
+  """
+  try:
+      NEXTCLOUD_URL = "https://{}".format(os.environ.get('NEXTCLOUD_HOSTNAME', 'localhost'))
+  except KeyError:
+      print("ERR -- no Nextcloud hostname was found!")
+      NEXTCLOUD_URL = input("Enter one now: ")
+  
+  # DO NOT HARD_CODE PASSWORDS IN PLAINTEXT! -- VC
+  user_username = input("Enter your username: ")
+  user_password = getpass.getpass("Enter your password: ")
+  
+  nxc_obj = NextCloud(NEXTCLOUD_URL, user_username, user_password, json_output=True)
   bot = commands.Bot(command_prefix=';')
-  nest_asyncio.apply()
-  dataBot = dataBot()
-  dataBot.run()                       
+  
+  spreadsheet = spreadsh_mgr.SpreadSheet(nxc_obj)
+  dataBot = dataBot(spreadsheet)
+  dataBot.run()
+
