@@ -48,6 +48,12 @@ class dataBot:
 #    except gspread.WorksheetNotFound:
 #      return True
 
+  # Note to my future self:
+  # this primitive algorithm is actually running through each 
+  # row and checking whether they match the given search query,
+  # which is oddly named "headers" ...
+  # it's a pretty ugly implementation. Surely I can write a better one, no?
+  # -VC
   def findColumn(self, headers):
     rowValues = self.spreadsheet.get_row(1)
     count = 0
