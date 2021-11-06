@@ -50,7 +50,7 @@ class dataBot:
 
   # Note to my future self:
   # this primitive algorithm is actually running through each 
-  # row and checking whether they match the given search query,
+  # COLUMN and checking whether it match the given search QUERY,
   # which is oddly named "headers" ...
   # it's a pretty ugly implementation. Surely I can write a better one, no?
   # -VC
