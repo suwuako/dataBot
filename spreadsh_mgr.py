@@ -33,16 +33,15 @@ local_file_prefix = "local-data/"
 class SpreadSheet:
   def __init__(self, nextcld, **kwargs):
     self.alphabet_base_powers = [1, 26, 26*26, 26*26*26, 26*26*26*26, 26*26*26*26*26]
-    print("[DEBUG]    Constructor is being run")
     if (nextcld != None):
-      print("[     ]        nextcloud sync is set ON")
+      print("[ constructor ]        nextcloud sync is set ON")
       self.enable_sync = True
       self.nc_obj = nextcld
       #self.nc_host = kwargs["nc_url"]
       #self.nc_user = kwargs["nc_user"]
       #self.nc_pass = kwargs["nc_pass"]
     else:
-      print("[     ]        nextcloud sync is set OFF")
+      print("[ constructor ]        nextcloud sync is set OFF")
       self.nc_obj = None
       self.enable_sync = False
 
@@ -76,9 +75,9 @@ class SpreadSheet:
     file_local_path = os.path.abspath(file_name)
     print("About to try to upload \"%s\" to %s" % (file_content, file_name))
     try:
-        self.nc_obj.upload_file(user_username, file_local_path, file_name, timestamp)
+      self.nc_obj.upload_file(user_username, file_local_path, file_name, timestamp)
     except Error:
-        print("Upload encountered a failure!!")
+      print("Upload encountered a failure!!")
     print("Just tried to upload...")
     
     # check status code -- TODO port this functionality somehow?
@@ -200,21 +199,33 @@ class SpreadSheet:
     match_obj = re.match("^([a-zA-Z]+)(\\d+)$", cell)
     assert(match_obj != None),"Invalid cell name. It must be a sequence of letters followed by a number."
     
-    row = int(match_obj.group(2)) - 1 # indices start at zero
+    row = int(match_obj.group(2)) - 1 # don't forget, indices start at zero!
     col = self.convert_alphabetic_to_column(match_obj.group(1)) - 1
     
     print("[DEBUG]    Now OVERWRITING value at row %d, col %d" % (row, col))
+    selected_sheet = self.book[self.worksheet_name]
+    while (row >= len(selected_sheet)):
+      # fill the sheet with more ROWS in order to access the given index
+      selected_sheet.append([])
+    
+    while (col >= len(selected_sheet[0])):
+      # fill the sheet with more COLUMNS in order to be able to access the given index
+      for i in range(0, len(selected_sheet)):
+        selected_sheet[i].append('')
+    
     self.book[self.worksheet_name][row][col] = message
     pyexcel_ods.save_data(local_file_prefix + "ok.ods", self.book)
-
+    
     if (self.enable_sync):
       print("connection to Nextcloud is a WIP")
 
-  def testGetMethods(self):
+  def test_get_methods(self):
     self.get_book(local_file_prefix+"ok.ods")
-    self.get_worksheet('SEIS_DE_MAYO', True)
+    self.get_worksheet('SEIS_DE_NOVIEMBRE', True)
     self.write_cell('A1', 'bruh zone')
-    self.write_cell('C11', 'another test message')
+    self.write_cell('A1', 'am I a valuable person?')
+    self.write_cell('BA1', 'what is the meaning of life?')
+    self.write_cell('AC11', 'isolation is killing chocorho :(')
 
 # TODO put simpler unit tests in a new file
 if __name__ == '__main__':
@@ -232,15 +243,15 @@ if __name__ == '__main__':
   
   spreadSheet = SpreadSheet(nxc_obj)
   
-  r1 =  spreadSheet.convert_alphabetic_to_column("C")
-  r2 =  spreadSheet.convert_alphabetic_to_column("AC")
-  r3 =  spreadSheet.convert_alphabetic_to_column("CA")
-  r4 =  spreadSheet.convert_alphabetic_to_column("YA")
-  r5 =  spreadSheet.convert_alphabetic_to_column("AA")
-  r6 =  spreadSheet.convert_alphabetic_to_column("AAA")
-  r7 =  spreadSheet.convert_alphabetic_to_column("AAAA") # 26 + 26*26 + 26*26*26
-  r8 =  spreadSheet.convert_alphabetic_to_column("AAAAA")
-  r9 =  spreadSheet.convert_alphabetic_to_column("AAAAAA")
+  r1  = spreadSheet.convert_alphabetic_to_column("C")
+  r2  = spreadSheet.convert_alphabetic_to_column("AC")
+  r3  = spreadSheet.convert_alphabetic_to_column("CA")
+  r4  = spreadSheet.convert_alphabetic_to_column("YA")
+  r5  = spreadSheet.convert_alphabetic_to_column("AA")
+  r6  = spreadSheet.convert_alphabetic_to_column("AAA")
+  r7  = spreadSheet.convert_alphabetic_to_column("AAAA") # 26 + 26*26 + 26*26*26
+  r8  = spreadSheet.convert_alphabetic_to_column("AAAAA")
+  r9  = spreadSheet.convert_alphabetic_to_column("AAAAAA")
   r10 = spreadSheet.convert_alphabetic_to_column("AAAAAAA")
   r11 = spreadSheet.convert_alphabetic_to_column("AAAAAAAA")
   
@@ -248,6 +259,6 @@ if __name__ == '__main__':
   print("%d, %d, %d, %d, %d, %d, %d" % (r5, r6, r7, r8, r9, r10, r11))
   
   # test
-  spreadSheet.testGetMethods()
+  spreadSheet.test_get_methods()
 
 
