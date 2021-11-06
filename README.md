@@ -16,11 +16,10 @@ This is a discord bot (now using Nextcloud & ODS for open-source data management
     -    you can install this by using the git submodule and typing `sudo python3 ./setup install`
 
 ### Configuration
-Update the file secret.py with your custom credentials. For now, it takes the form of a simple python module that sets the following variables:
+Update the file secret.py with your custom credentials. For now, it takes the form of a simple python module that sets the following variable:
 ```
-bot_token = 'bot-token-here'
-update_channel_ID = channel-id-here 
-host_username = '<@431491115775164418>'
+class credentials:
+  bottoken = 'bot-token-here'
 ```
 
 ## Design
