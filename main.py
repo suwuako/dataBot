@@ -39,7 +39,7 @@ class dataBot:
     #self.spreadsheet.get_book(serverName)
 
   def author_id_worksheet_not_found(self, serverName, authorID):
-    sheetList = spreadsheet.get_book(serverName+".ods").keys()
+    sheetList = spreadsheet.get_book(spreadsh_mgr.local_file_prefix+serverName+".ods").keys()
     result = str(authorID) in sheetList
     return result
 
@@ -50,7 +50,7 @@ class dataBot:
   # it's a pretty ugly implementation. Surely I can write a better one, no?
   # -VC
   def findColumn(self, headers):
-    rowValues = self.spreadsheet.get_row(1)
+    rowValues = self.spreadsheet.get_row(0)
     count = 0
     self.test = False
 
@@ -82,7 +82,7 @@ class dataBot:
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         #gets all cell values of top row
-        rowValues = self.spreadsheet.get_row(1)
+        rowValues = self.spreadsheet.get_row(0)
         count = 0
         headers = ''
         
@@ -112,11 +112,11 @@ class dataBot:
       if self.author_id_worksheet_not_found(message.channel.guild.name, message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
-        rowValues = self.spreadsheet.get_row(1)
+        colValues = self.spreadsheet.get_row(0)
         cleaned = []
         reformat = '['
         
-        for i in rowValues:
+        for i in colValues:
           if i != '':
             cleaned.append(i)
         
@@ -205,7 +205,7 @@ class dataBot:
       if self.author_id_worksheet_not_found(message.channel.guild.name, message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
-        rows = self.spreadsheet.get_row(1)
+        rows = self.spreadsheet.get_row(0)
         
         bindEmbed = discord.Embed(color=0xFF99E5)
         bindEmbed.set_author(name=f'Getting values of <@{message.author.id}>')

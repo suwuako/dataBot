@@ -8,7 +8,7 @@
 
 # python libraries
 import os
-import re # to parse cell names
+import re # to parse cell names and check filenames
 import string
 
 # third-party dependencies
@@ -33,6 +33,7 @@ local_file_prefix = "local-data/"
 class SpreadSheet:
   def __init__(self, nextcld, **kwargs):
     self.alphabet_base_powers = [1, 26, 26*26, 26*26*26, 26*26*26*26, 26*26*26*26*26]
+    self.worksheet_name = "default"
     if (nextcld != None):
       print("[ constructor ]        nextcloud sync is set ON")
       self.enable_sync = True
@@ -108,22 +109,27 @@ class SpreadSheet:
   def new_book(self, assigned_name):
     self.book_filename = assigned_name
     self.book = collections.OrderedDict()
-    new_worksheet("default")
+    self.new_worksheet("default")
     if (assigned_name == None or assigned_name == ""):
       pyexcel_ods.save_data(local_file_prefix + "dataSheet.ods", self.book)
     else:
-      pyexcel_ods.save_data(local_file_prefix + assigned_name, self.book)
+      pyexcel_ods.save_data(assigned_name, self.book)
 
-  # renamed from get_sheet to get_book, in the interest of clarity
+  # Precondition: filename is a valid filename in the given file system
+  # Postcondition: will retrieve (and create) the proper OrderedDict
+  # for the server with the given filename
   def get_book(self, filename):
+    finished_filename = filename if re.match("^"+local_file_prefix, filename) != None else local_file_prefix+"/"+filename
     try:
-      self.book = pyexcel_ods.get_data(filename)
+      self.book = pyexcel_ods.get_data(finished_filename)
+      return self.book
     except FileNotFoundError:
-      self.new_book(filename)
+      self.new_book(finished_filename)
+      return self.book
 
   # This call creates a new 2d array (for a new sheet inside the spreadsheet
   # book), also allowing the user to specify a custom size of the array.
-  def new_worksheet(self, name, row_ct=2000, col_ct=20):
+  def new_worksheet(self, name, row_ct=2000, col_ct=26):
     assert (self.book != None),"Spreadsheet book has not been set!!"
     self.worksheet_name = name
     sheet_as_arr = [[]]
