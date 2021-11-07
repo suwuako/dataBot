@@ -40,7 +40,7 @@ class dataBot:
 
   def author_id_worksheet_not_found(self, serverName, authorID):
     sheetList = spreadsheet.get_book(spreadsh_mgr.local_file_prefix+serverName+".ods").keys()
-    result = str(authorID) in sheetList
+    result = str(authorID) not in sheetList
     return result
 
   # Note to my future self:
