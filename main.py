@@ -36,17 +36,12 @@ class dataBot:
       print("The bot has disconnected successfully.")
     
     self.spreadsheet = spreadsheet_obj
-    #self.spreadsheet.get_book()
+    #self.spreadsheet.get_book(serverName)
 
-  def author_id_worksheet_not_found(self, authorID):
-    sheetList = spreadsheet.get_book().keys()
-    return (str(authorID) in sheetList)
-#    try:
-#      spreadsheet.get_worksheet(str(authorID))
-#      self.worksheet = spreadsheet.worksheet
-#      return False
-#    except gspread.WorksheetNotFound:
-#      return True
+  def author_id_worksheet_not_found(self, serverName, authorID):
+    sheetList = spreadsheet.get_book(serverName+".ods").keys()
+    result = str(authorID) in sheetList
+    return result
 
   # Note to my future self:
   # this primitive algorithm is actually running through each 
@@ -83,7 +78,7 @@ class dataBot:
 
     @bot.command()
     async def newHeader(message, *args):
-      if self.author_id_worksheet_not_found(message.author.id):
+      if self.author_id_worksheet_not_found(message.channel.guild.name, message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         #gets all cell values of top row
@@ -114,7 +109,7 @@ class dataBot:
 
     @bot.command()
     async def displayHeaders(message): 
-      if self.author_id_worksheet_not_found(message.author.id):
+      if self.author_id_worksheet_not_found(message.channel.guild.name, message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         rowValues = self.spreadsheet.get_row(1)
@@ -138,7 +133,7 @@ class dataBot:
         
     @bot.command()
     async def postData(message, *args):
-      if self.author_id_worksheet_not_found(message.author.id):
+      if self.author_id_worksheet_not_found(message.channel.guild.name, message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         #holy fucking shit this may work but its slow as fuck fix it when u got time
@@ -175,7 +170,7 @@ class dataBot:
 
     @bot.command()
     async def rawData(message, *args):
-      if self.author_id_worksheet_not_found(message.author.id):
+      if self.author_id_worksheet_not_found(message.channel.guild.name, message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         headers = ''
@@ -207,7 +202,7 @@ class dataBot:
     
     @bot.command()
     async def rawSheet(message):
-      if self.author_id_worksheet_not_found(message.author.id):
+      if self.author_id_worksheet_not_found(message.channel.guild.name, message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         rows = self.spreadsheet.get_row(1)
@@ -236,7 +231,7 @@ class dataBot:
         
     @bot.command()
     async def replace(message, *args):
-      if self.author_id_worksheet_not_found(message.author.id):
+      if self.author_id_worksheet_not_found(message.channel.guild.name, message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         temp = ''
@@ -256,7 +251,7 @@ class dataBot:
 
     @bot.command()
     async def basicAnalysis(message):
-      if self.author_id_worksheet_not_found(message.author.id):
+      if self.author_id_worksheet_not_found(message.channel.guild.name, message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         strdata = self.worksheet.get_all_values()
