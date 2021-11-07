@@ -121,11 +121,11 @@ class dataBot:
             cleaned.append(i)
         
         for i in cleaned:
-          #saving last value in list to prevent it ending in a comma
+          # save last value in list to prevent it ending in a comma
           if cleaned[-1] != i:
             reformat += f'`{i}`, '
           
-        reformat += f'`{i}`]'
+        reformat += f'`{cleaned[-1]}`]' if len(cleaned) > 0 else '``]'
         bindEmbed = discord.Embed(color=0xFF99E5)
         bindEmbed.add_field(name='List of headers:', value=f'{reformat}', inline=True)
         
