@@ -120,10 +120,9 @@ class dataBot:
           if i != '':
             cleaned.append(i)
         
-        for i in cleaned:
-          # save last value in list to prevent it ending in a comma
-          if cleaned[-1] != i:
-            reformat += f'`{i}`, '
+        # save last value in list to prevent it ending in a comma
+        for i in range(0, len(cleaned)-1):
+          reformat += f'`{i}`, '
           
         reformat += f'`{cleaned[-1]}`]' if len(cleaned) > 0 else '``]'
         bindEmbed = discord.Embed(color=0xFF99E5)
