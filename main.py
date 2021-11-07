@@ -287,10 +287,10 @@ if __name__ == '__main__':
       When the bot is first run, obtain credentials for the nextcloud server.
   """
   try:
-      NEXTCLOUD_URL = "https://{}".format(os.environ.get('NEXTCLOUD_HOSTNAME', 'localhost'))
+    NEXTCLOUD_URL = "https://{}".format(os.environ.get('NEXTCLOUD_HOSTNAME', 'localhost'))
   except KeyError:
-      print("ERR -- no Nextcloud hostname was found!")
-      NEXTCLOUD_URL = input("Enter one now: ")
+    print("ERR -- no Nextcloud hostname was found!")
+    NEXTCLOUD_URL = input("Enter one now: ")
   
   # DO NOT HARD_CODE PASSWORDS IN PLAINTEXT! -- VC
   user_username = input("Enter your username: ")
