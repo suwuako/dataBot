@@ -129,12 +129,16 @@ class SpreadSheet:
       pyexcel_ods.save_data(local_file_prefix + "dataSheet.ods", self.book)
     else:
       pyexcel_ods.save_data(assigned_name, self.book)
+  
+  def finish_filename(self, book_name):
+    prefixed_filename = book_name if re.match("^"+local_file_prefix, book_name) != None else local_file_prefix+"/"+book_name
+    return prefixed_filename if re.match(".*\.ods$", prefixed_filename) != None else prefixed_filename+".ods"
 
   # Precondition: filename is a valid filename in the given file system
   # Postcondition: will retrieve (and create) the proper OrderedDict
   # for the server with the given filename
   def get_book(self, filename, force=True):
-    finished_filename = filename if re.match("^"+local_file_prefix, filename) != None else local_file_prefix+"/"+filename
+    finished_filename = self.finish_filename(filename)
     try:
       self.book = pyexcel_ods.get_data(finished_filename)
       return self.book
@@ -148,12 +152,12 @@ class SpreadSheet:
   # This call creates a new 2d array (for a new sheet inside the spreadsheet
   # book), also allowing the user to specify a custom size of the array.
   def new_worksheet(self, book_name, sheet_name, row_ct=2000, col_ct=26):
-    prefixed_filename = book_name if re.match("^"+local_file_prefix, book_name) != None else local_file_prefix+"/"+book_name
-    finished_filename = prefixed_filename if re.match("\.ods$", prefixed_filename) != None else prefixed_filename+".ods"
+    finished_filename = self.finish_filename(book_name)
     book_obj = self.get_book(finished_filename, False)
     assert (book_obj != None),"Spreadsheet book has not been set!!"
     self.book = book_name
     self.worksheet_name = sheet_name
+    print("setting the sheet name to \"%s\"" % self.worksheet_name)
     sheet_as_arr = [[]]
     for i in range(0, row_ct):
       sheet_as_arr.append([])
@@ -176,9 +180,9 @@ class SpreadSheet:
       else:
         return None
 
-  def get_row(self, row, wsheet=None):
+  def get_row(self, book_name, wsheet="default", row=0):
     if (wsheet == None):
-      print("argument to get_row is None, so we will use the default %s" % self.worksheet_name)
+      print("argument to get_row is None, so we will use the sheet name \"%s\"" % self.worksheet_name)
       return self.book[self.worksheet_name][row]
     else:
       return self.book[wsheet][row]
@@ -220,7 +224,9 @@ class SpreadSheet:
     column_num = self.convert_alphabetic_to_column(match_obj.group(1)) - 1
     return self.book[self.worksheet_name][row_num][column_num]
 
-  def write_cell(self, cell, message):
+  def write_cell(self, book_name, sheet_name, cell, message):
+    cleansed_filename = self.finish_filename(book_name)
+    book = pyexcel_ods.get_data(cleansed_filename)
     assert (self.book != None),"Spreadsheet book has not been set!!"
     assert (len(cell) >= 2),"Invalid cell size. It must be at least two characters in length."
     
@@ -232,7 +238,7 @@ class SpreadSheet:
     col = self.convert_alphabetic_to_column(match_obj.group(1)) - 1
     
     print("[DEBUG]    Now OVERWRITING value at row %d, col %d" % (row, col))
-    selected_sheet = self.book[self.worksheet_name]
+    selected_sheet = book[sheet_name]
     while (row >= len(selected_sheet)):
       # fill the sheet with more ROWS in order to access the given index
       selected_sheet.append([])
@@ -242,8 +248,8 @@ class SpreadSheet:
       for i in range(0, len(selected_sheet)):
         selected_sheet[i].append('')
     
-    self.book[self.worksheet_name][row][col] = message
-    pyexcel_ods.save_data(local_file_prefix + "ok.ods", self.book)
+    book[sheet_name][row][col] = message
+    pyexcel_ods.save_data(cleansed_filename, book)
     
     if (self.enable_sync):
       print("connection to Nextcloud is a WIP")
@@ -251,10 +257,10 @@ class SpreadSheet:
   def test_get_methods(self):
     self.get_book(local_file_prefix+"ok.ods")
     self.get_worksheet('SEIS_DE_NOVIEMBRE', True)
-    self.write_cell('A1', 'bruh zone')
-    self.write_cell('A1', 'am I a valuable person?')
-    self.write_cell('BA1', 'what is the meaning of life?')
-    self.write_cell('AC11', 'isolation is killing chocorho :(')
+    self.write_cell('ok', 'SEIS_DE_NOVIEMBRE', 'A1', 'bruh zone')
+    self.write_cell('ok', 'SEIS_DE_NOVIEMBRE', 'A1', 'am I a valuable person?')
+    self.write_cell('ok', 'SEIS_DE_NOVIEMBRE', 'BA1', 'what is the meaning of life?')
+    self.write_cell('ok', 'SEIS_DE_NOVIEMBRE', 'AC11', 'isolation is killing chocorho :(')
 
 # TODO put simpler unit tests in a new file
 if __name__ == '__main__':

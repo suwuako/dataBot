@@ -49,8 +49,8 @@ class dataBot:
   # which is oddly named "headers" ...
   # it's a pretty ugly implementation. Surely I can write a better one, no?
   # -VC
-  def findColumn(self, headers):
-    rowValues = self.spreadsheet.get_row(0)
+  def findColumn(self, guild_name, sheet_name, headers):
+    rowValues = self.spreadsheet.get_row(guild_name, sheet_name, 0)
     count = 0
     self.test = False
 
@@ -82,7 +82,7 @@ class dataBot:
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
         # gets all cell values of top row
-        rowValues = self.spreadsheet.get_row(0)
+        rowValues = self.spreadsheet.get_row(message.channel.guild.name, f'{message.author.id}', 0)
         print(rowValues)
         count = 0
         headers = ''
@@ -103,8 +103,7 @@ class dataBot:
           await message.channel.send(f'You can\'t make two headers of the same name. \n(if ur trying to find bugs id like you to know ur an asshole)')
           
         else:
-          self.spreadsheet.write_cell(f'{string.ascii_uppercase[count]}1', headers)
-        
+          self.spreadsheet.write_cell(message.channel.guild.name, f'{message.author.id}', f'{string.ascii_uppercase[count]}1', headers)
           await message.channel.send(f'Making header:`"{headers}"` on `{string.ascii_uppercase[count]}1` in file <@{message.author.id}>')
 
 
@@ -113,7 +112,7 @@ class dataBot:
       if self.author_id_worksheet_not_found(message.channel.guild.name, message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
-        colValues = self.spreadsheet.get_row(0)
+        colValues = self.spreadsheet.get_row(message.channel.guild.name, f'{message.author.id}', 0)
         cleaned = []
         reformat = '['
         
@@ -123,7 +122,7 @@ class dataBot:
         
         # save last value in list to prevent it ending in a comma
         for i in range(0, len(cleaned)-1):
-          reformat += f'`{i}`, '
+          reformat += f'`{cleaned[i]}`, '
           
         reformat += f'`{cleaned[-1]}`]' if len(cleaned) > 0 else '``]'
         bindEmbed = discord.Embed(color=0xFF99E5)
@@ -144,7 +143,7 @@ class dataBot:
             headers += args[i] + ' '
         headers += args[-2]
 
-        self.findColumn(headers)
+        self.findColumn(message.channel.guild.name, f'{message.author.id}', headers)
         if self.test != True:
           await message.channel.send(f'There is no header called `{headers}`. Try ;displayHeaders to see what headers you have')
         else:
@@ -158,8 +157,8 @@ class dataBot:
               now = datetime.datetime.now()
               formatted = now.strftime("%d/%m/%Y %H:%M:%S")
               
-              self.spreadsheet.write_cell(datecell, formatted)
-              self.spreadsheet.write_cell(cell, args[-1])
+              self.spreadsheet.write_cell(message.channel.guild.name, f'{message.author.id}', datecell, formatted)
+              self.spreadsheet.write_cell(message.channel.guild.name, f'{message.author.id}', cell, args[-1])
               bindEmbed = discord.Embed(color=0xFF99E5)
               bindEmbed.set_author(name=f'Header: `{headers}`')
               bindEmbed.add_field(name=f'Cell Value: `{cell}`', value=f'Data: `{args[-1]}`', inline=True)
@@ -179,7 +178,7 @@ class dataBot:
             headers += i + ' '
         headers += args[-1]
 
-        self.findColumn(headers)
+        self.findColumn(message.channel.guild.name, f'{message.author.id}', headers)
         if self.test != True:
             await message.channel.send(f'There is no header called `{headers}`. Try ;displayHeaders to see what headers you have')
         else:
@@ -205,7 +204,7 @@ class dataBot:
       if self.author_id_worksheet_not_found(message.channel.guild.name, message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
-        rows = self.spreadsheet.get_row(0)
+        rows = self.spreadsheet.get_row(message.channel.guild.name, f'{message.author.id}', 0)
         
         bindEmbed = discord.Embed(color=0xFF99E5)
         bindEmbed.set_author(name=f'Getting values of <@{message.author.id}>')
@@ -241,7 +240,7 @@ class dataBot:
             
         try:
           if args[0][1] != '1':
-            self.spreadsheet.write_cell(args[0], temp)
+            self.spreadsheet.write_cell(message.channel.guild.name, f'{message.author.id}', args[0], temp)
             await message.channel.send(f'replaced `{args[0]}` with `{temp}`')
           else:
             await message.channel.send('you cant replace headers')
