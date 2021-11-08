@@ -178,6 +178,7 @@ class SpreadSheet:
 
   def get_row(self, row, wsheet=None):
     if (wsheet == None):
+      print("argument to get_row is None, so we will use the default %s" % self.worksheet_name)
       return self.book[self.worksheet_name][row]
     else:
       return self.book[wsheet][row]

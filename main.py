@@ -81,23 +81,24 @@ class dataBot:
       if self.author_id_worksheet_not_found(message.channel.guild.name, message.author.id):
         await message.channel.send('you need to register a spreadsheet with ;register first')
       else:
-        #gets all cell values of top row
+        # gets all cell values of top row
         rowValues = self.spreadsheet.get_row(0)
+        print(rowValues)
         count = 0
         headers = ''
         
-        #compiling arguments in message contents
+        # compiling arguments in message contents
         headers = " ".join(str(next_header) for next_header in args)
         
-        #find every second column so that I can fit datetime values for each cell (B, D, F, etc are all data columns while the other odds contain dates)
+        # find every second column so that I can fit datetime values for each cell (B, D, F, etc are all data columns while the other odds contain dates)
         for i in rowValues:
           count += 1
         
-        #catching for odd numbers and gets converted to even (i think)
-        if type(count/2) == float:
+        # check for odd numbers and convert to even (why? -VC)
+        if (count % 2 == 1):
           count += 1
           
-        #same title column values cause issues I dont want to build around
+        # same title column values cause issues I dont want to build around
         if headers in rowValues:
           await message.channel.send(f'You can\'t make two headers of the same name. \n(if ur trying to find bugs id like you to know ur an asshole)')
           
