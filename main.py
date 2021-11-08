@@ -70,7 +70,7 @@ class dataBot:
     @bot.command()
     async def register(message):
 #      try:
-      self.spreadsheet.new_worksheet(f'{message.author.id}')
+      self.spreadsheet.new_worksheet(message.channel.guild.name, f'{message.author.id}')
       await message.channel.send(f'worksheet made!')
       
 #      except gspread.exceptions.APIError:

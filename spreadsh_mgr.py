@@ -33,6 +33,21 @@ local_file_prefix = "local-data/"
 class SpreadSheet:
   def __init__(self, nextcld, **kwargs):
     self.alphabet_base_powers = [1, 26, 26*26, 26*26*26, 26*26*26*26, 26*26*26*26*26]
+    # FIXME: keeping the book name and worksheet name might sooner or later
+    # introduce multithreaded problems!!!
+    # What if multiple different users try similar commands at the same time???
+    # One user might be setting the worksheet name, whereas another user might
+    # be trying to get data (headers etc.) from a different worksheet!
+    # Then, if the instructions are interlaced, then the variable
+    # self.worksheet_name might be reassigned just in the nick of time, by the
+    # time the data is retrieved for the second user!
+    # Similar problems might potentially exist within the "self.book" variables,
+    # if the same bot instance is managing multiple different servers (which
+    # might, I believe, be possible).
+    #
+    # Therefore, I believe we need to restructure the design of this class (add
+    # parameters for book name and sheet name to each method!), or at a minimum,
+    # add mutexes. :(
     self.worksheet_name = "default"
     if (nextcld != None):
       print("[ constructor ]        nextcloud sync is set ON")
@@ -118,30 +133,38 @@ class SpreadSheet:
   # Precondition: filename is a valid filename in the given file system
   # Postcondition: will retrieve (and create) the proper OrderedDict
   # for the server with the given filename
-  def get_book(self, filename):
+  def get_book(self, filename, force=True):
     finished_filename = filename if re.match("^"+local_file_prefix, filename) != None else local_file_prefix+"/"+filename
     try:
       self.book = pyexcel_ods.get_data(finished_filename)
       return self.book
     except FileNotFoundError:
-      self.new_book(finished_filename)
-      return self.book
+      if (force):
+        self.new_book(finished_filename)
+        return self.book
+      else:
+        return None
 
   # This call creates a new 2d array (for a new sheet inside the spreadsheet
   # book), also allowing the user to specify a custom size of the array.
-  def new_worksheet(self, name, row_ct=2000, col_ct=26):
-    assert (self.book != None),"Spreadsheet book has not been set!!"
-    self.worksheet_name = name
+  def new_worksheet(self, book_name, sheet_name, row_ct=2000, col_ct=26):
+    prefixed_filename = book_name if re.match("^"+local_file_prefix, book_name) != None else local_file_prefix+"/"+book_name
+    finished_filename = prefixed_filename if re.match("\.ods$", prefixed_filename) != None else prefixed_filename+".ods"
+    book_obj = self.get_book(finished_filename, False)
+    assert (book_obj != None),"Spreadsheet book has not been set!!"
+    self.book = book_name
+    self.worksheet_name = sheet_name
     sheet_as_arr = [[]]
     for i in range(0, row_ct):
       sheet_as_arr.append([])
       for h in range(0, col_ct):
         sheet_as_arr[i].append('')
     
-    sheet_as_dict = { name: sheet_as_arr }
+    sheet_as_dict = { sheet_name: sheet_as_arr }
     
-    self.book.update(sheet_as_dict)
-    return self.book[name]
+    book_obj.update(sheet_as_dict)
+    pyexcel_ods.save_data(finished_filename, book_obj)
+    return book_obj[sheet_name]
 
   def get_worksheet(self, name, force):
     self.worksheet_name = name
@@ -149,7 +172,6 @@ class SpreadSheet:
       return self.book[name]
     except KeyError:
       if (force):
-        # the `self.` here is necessary...? TODO find out why.
         return self.new_worksheet(name)
       else:
         return None
