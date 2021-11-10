@@ -151,7 +151,7 @@ class dataBot:
             cell = string.ascii_uppercase[self.matching_header_index] + str(count)
             datecell = string.ascii_uppercase[self.matching_header_index-1] + str(count)
 
-            cellValue = self.spreadsheet.get_cell(cell)
+            cellValue = self.spreadsheet.get_cell(message.channel.guild.name, f'{message.author.id}', cell)
             if cellValue == '':
               now = datetime.datetime.now()
               formatted = now.strftime("%d/%m/%Y %H:%M:%S")

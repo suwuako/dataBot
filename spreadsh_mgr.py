@@ -216,18 +216,20 @@ class SpreadSheet:
       sigma += (string.ascii_uppercase.find(letter_seq[index].upper()) + 1)*self.alphabet_base_powers[len(letter_seq) - index - 1]
     return sigma
 
-  def get_cell(self, cell_label):
-    assert (self.book != None),"Spreadsheet book has not been set!!"
+  def get_cell(self, book_name, sheet_name, cell_label):
+    cleansed_filename = self.finish_filename(book_name)
+    book = pyexcel_ods.get_data(cleansed_filename)
+    assert (book != None),"Spreadsheet book has not been set!!"
     match_obj = re.match("^([a-zA-Z]+)(\\d+)$", cell)
     assert(match_obj != None),"Invalid cell name. It must be a sequence of letters followed by a number."
     row_num = int(match_obj.group(2)) - 1
     column_num = self.convert_alphabetic_to_column(match_obj.group(1)) - 1
-    return self.book[self.worksheet_name][row_num][column_num]
+    return book[sheet_name][row_num][column_num]
 
   def write_cell(self, book_name, sheet_name, cell, message):
     cleansed_filename = self.finish_filename(book_name)
     book = pyexcel_ods.get_data(cleansed_filename)
-    assert (self.book != None),"Spreadsheet book has not been set!!"
+    assert (book != None),"Spreadsheet book has not been set!!"
     assert (len(cell) >= 2),"Invalid cell size. It must be at least two characters in length."
     
     # RECALL: Valid cell names could be really long like "ACE6561"
