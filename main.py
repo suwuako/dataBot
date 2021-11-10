@@ -58,8 +58,7 @@ class dataBot:
       if i == headers:
         self.test = True
         
-        # TODO find a better (non-overloaded) name for this instance variable!!
-        self.count = count
+        self.matching_header_index = count
       count += 1
 
   def commands(self):
@@ -149,8 +148,8 @@ class dataBot:
         else:
           count = 2
           while True:
-            cell = string.ascii_uppercase[self.count] + str(count)
-            datecell = string.ascii_uppercase[self.count-1] + str(count)
+            cell = string.ascii_uppercase[self.matching_header_index] + str(count)
+            datecell = string.ascii_uppercase[self.matching_header_index-1] + str(count)
 
             cellValue = self.spreadsheet.get_cell(cell)
             if cellValue == '':
@@ -182,20 +181,20 @@ class dataBot:
         if self.test != True:
             await message.channel.send(f'There is no header called `{headers}`. Try ;displayHeaders to see what headers you have')
         else:
-          columnValue = self.spreadsheet.get_column(self.count+1)
+          columnValue = self.spreadsheet.get_column(self.matching_header_index+1)
           totalString = ''
-          cell = string.ascii_uppercase[self.count] + '2'
+          cell = string.ascii_uppercase[self.matching_header_index] + '2'
           for i in range(len(columnValue)):
             if i != 0 or len(columnValue)-1:
               
               totalString += f'(`{cell}`): ' + columnValue[i] + '\n'
-              cell = string.ascii_uppercase[self.count] + f'{i+2}'
+              cell = string.ascii_uppercase[self.matching_header_index] + f'{i+2}'
           totalString += f'(`{cell}`): ' + columnValue[-1]
 
           bindEmbed = discord.Embed(color=0xFF99E5)
           bindEmbed.set_author(name=f'Getting values of {headers}')
           bindEmbed.add_field(name=f'Column: {headers}', value=f'{totalString}', inline=True)
-          bindEmbed.set_footer(text=f'Note that cells begin at {string.ascii_uppercase[self.count]}2, because the first cell is occupied by the header (title)')
+          bindEmbed.set_footer(text=f'Note that cells begin at {string.ascii_uppercase[self.matching_header_index]}2, because the first cell is occupied by the header (title)')
           await message.channel.send(embed=bindEmbed)
 
     
