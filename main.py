@@ -146,7 +146,7 @@ class dataBot:
         if self.test != True:
           await message.channel.send(f'There is no header called `{headers}`. Try ;displayHeaders to see what headers you have')
         else:
-          count = 2
+          count = 1
           while True:
             cell = string.ascii_uppercase[self.matching_header_index] + str(count)
             datecell = string.ascii_uppercase[self.matching_header_index-1] + str(count)
