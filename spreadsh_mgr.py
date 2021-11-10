@@ -224,6 +224,11 @@ class SpreadSheet:
     assert(match_obj != None),"Invalid cell name. It must be a sequence of letters followed by a number."
     row_num = int(match_obj.group(2)) - 1
     column_num = self.convert_alphabetic_to_column(match_obj.group(1)) - 1
+    while (row_num >= len(book[sheet_name])):
+      book[sheet_name].append(['']*column_num)
+    while (column_num+1 >= len(book[sheet_name][row_num])):
+      # fill the sheet with more COLUMNS in order to be able to access the given index
+      book[sheet_name][row_num].append('')
     return book[sheet_name][row_num][column_num]
 
   def write_cell(self, book_name, sheet_name, cell, message):
@@ -239,16 +244,16 @@ class SpreadSheet:
     row = int(match_obj.group(2)) - 1 # don't forget, indices start at zero!
     col = self.convert_alphabetic_to_column(match_obj.group(1)) - 1
     
-    print("[DEBUG]    Now OVERWRITING value at row %d, col %d" % (row, col))
+    print("[DEBUG]    Now trying to write %s at %s[%d][%d]" % (message, sheet_name, row, col))
     selected_sheet = book[sheet_name]
     while (row >= len(selected_sheet)):
       # fill the sheet with more ROWS in order to access the given index
       selected_sheet.append([])
     
-    while (col >= len(selected_sheet[0])):
+    while (col >= len(selected_sheet[row])):
       # fill the sheet with more COLUMNS in order to be able to access the given index
-      for i in range(0, len(selected_sheet)):
-        selected_sheet[i].append('')
+      for i in range(0, (col+1)):
+        selected_sheet[row].append('')
     
     book[sheet_name][row][col] = message
     pyexcel_ods.save_data(cleansed_filename, book)
