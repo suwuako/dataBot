@@ -220,7 +220,7 @@ class SpreadSheet:
     cleansed_filename = self.finish_filename(book_name)
     book = pyexcel_ods.get_data(cleansed_filename)
     assert (book != None),"Spreadsheet book has not been set!!"
-    match_obj = re.match("^([a-zA-Z]+)(\\d+)$", cell)
+    match_obj = re.match("^([a-zA-Z]+)(\\d+)$", cell_label)
     assert(match_obj != None),"Invalid cell name. It must be a sequence of letters followed by a number."
     row_num = int(match_obj.group(2)) - 1
     column_num = self.convert_alphabetic_to_column(match_obj.group(1)) - 1
