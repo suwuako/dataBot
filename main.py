@@ -136,10 +136,8 @@ class dataBot:
       else:
         #holy fucking shit this may work but its slow as fuck fix it when u got time
         headers = ''
-        invalid = [len(args)-1, len(args)-2]
-        for i in range(len(args)):
-          if i not in invalid:
-            headers += args[i] + ' '
+        for i in range(0, len(args)-2):
+          headers += args[i] + ' '
         headers += args[-2]
 
         self.findColumn(message.channel.guild.name, f'{message.author.id}', headers)
