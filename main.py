@@ -14,7 +14,6 @@ import string
 import datetime
 import discord
 from discord.ext import commands
-#import gspread
 import nest_asyncio
 from nextcloud import NextCloud
 import pandas
