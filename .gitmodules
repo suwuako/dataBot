@@ -1,0 +1,3 @@
+[submodule "nextcloud-API"]
+	path = nextcloud-API
+	url = https://github.com/EnterpriseyIntranet/nextcloud-API
